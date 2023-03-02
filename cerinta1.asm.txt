@@ -1,0 +1,355 @@
+.data
+	y: .long 16
+	c: .asciz "-"
+	spatiu: .asciz " "
+	endline: .asciz "\n"
+	sirb16: .space 101
+	slet: .asciz "let"
+	sadd: .asciz "add"
+	ssub: .asciz "sub"
+	smul: .asciz "mul"
+	sdiv: .asciz "div"
+	formatscanf: .asciz "%s\0"
+	formatprintfnr: .asciz "%d"
+	formatprintfsir: .asciz "%s"
+	formatprintfchar: .asciz "%c"
+.text
+
+.global main
+
+main:
+
+#citirea de la tastatura
+	pushl $sirb16
+	pushl $formatscanf
+	call scanf
+	popl %ebx
+	popl %ebx
+
+#mutam sirb16 in registrul %edi
+	movl $sirb16, %edi
+	xorl %ecx, %ecx
+
+et_for:
+	movl $0, %eax
+	movb (%edi, %ecx, 1), %al
+
+	#verifica sfarsitul sirului
+	cmp $0, %al
+	je et_exit
+
+	cmp $56, %al
+	je et_numar
+
+	cmp $57, %al
+	je et_numar
+
+	cmp $65, %al
+	je et_variabila
+
+	cmp $66, %al
+	je et_variabila
+
+	cmp $67, %al
+	je et_operatie
+
+	cmp $68, %al
+	je et_operatie
+
+	jmp et_exit
+
+et_numar:
+	#daca este 9, atunci nr va fi negativ
+	cmp $56, %al
+	je et_prelucrare
+
+	et_afisaresemn:
+		pushl %ecx
+
+		pushl $c
+		pushl $formatprintfsir
+		call printf
+		popl %ebx
+		popl %ebx
+
+		popl %ecx
+
+	et_prelucrare:
+		incl %ecx
+
+		movl $0, %eax
+		movb (%edi, %ecx, 1), %al
+
+		#calculam suma nr in baza 16 pe 2 biti
+		et_bit1:
+			cmp $57, %al
+			jbe suma_nr1
+
+			suma_cifra1:
+				subl $55, %eax
+				movl $16, %ebx
+				mull %ebx
+
+			jmp et_bit2
+
+			suma_nr1:
+				subl $48, %eax
+                                movl $16, %ebx
+                                mull %ebx
+
+		et_bit2:
+			#pastram valoarea lui %eax pentru ca se va pierde
+                	movl %eax, %edx
+
+			#bitul urmator
+			incl %ecx
+			movl $0, %eax
+        		movb (%edi, %ecx, 1), %al
+
+			cmp $57, %al
+                	jbe suma_nr2
+
+                	suma_cifra2:
+                        	subl $55, %eax
+                                addl %edx, %eax
+
+		jmp et_afisarenr
+
+                	suma_nr2:
+                	        subl $48, %eax
+                                addl %edx, %eax
+
+
+		et_afisarenr:
+			pushl %ecx
+
+			pushl %eax
+			pushl $formatprintfnr
+			call printf
+			popl %ebx
+			popl %ebx
+
+			pushl $spatiu
+			pushl $formatprintfsir
+			call printf
+			popl %ebx
+			popl %ebx
+
+			popl %ecx
+
+		incl %ecx
+
+	jmp et_for
+
+
+et_variabila:
+	incl %ecx
+        movl $0, %eax
+        movb (%edi, %ecx, 1), %al
+
+        #calculam suma nr in baza 16 pe 2 biti
+        et_bit11:
+		cmp $57, %al
+                jbe suma_nr11
+
+                suma_cifra11:
+                	subl $55, %eax
+                        movl $16, %ebx
+                        mull %ebx
+
+                jmp et_bit21
+
+             	suma_nr11:
+ 	               subl $48, %eax
+                       movl $16, %ebx
+                       mull %ebx
+
+	et_bit21:
+		#pastram valoarea lui %eax pentru ca se va pierde
+                movl %eax, %edx
+
+                #bitul urmator
+                incl %ecx
+                movl $0, %eax
+                movb (%edi, %ecx, 1), %al
+
+                cmp $57, %al
+                jbe suma_nr21
+
+		suma_cifra21:
+                	subl $55, %eax
+                        addl %edx, %eax
+
+	jmp et_afisarevar
+
+		suma_nr21:
+	                subl $48, %eax
+                        addl %edx, %eax
+
+		et_afisarevar:
+			pushl %ecx
+
+                        pushl %eax
+                        pushl $formatprintfchar
+                        call printf
+                        popl %ebx
+                        popl %ebx
+
+                        pushl $spatiu
+                        pushl $formatprintfsir
+                        call printf
+                        popl %ebx
+                        popl %ebx
+
+			popl %ecx
+
+                incl %ecx
+
+        jmp et_for
+
+
+et_operatie:
+	incl %ecx
+	incl %ecx
+	movl $0, %eax
+	movb (%edi, %ecx, 1), %al
+
+	#se observa ca fiecare operatie are un cod unic din multimea [0,4]
+	cmp $48, %al
+	je et_afisarelet
+
+	cmp $49, %al
+	je et_afisareadd
+
+	cmp $50, %al
+	je et_afisaresub
+
+	cmp $51, %al
+	je et_afisaremul
+
+	cmp $52, %al
+	je et_afisarediv
+
+	#vom face afisari diferite in functie de fiecare valoare
+	et_afisarelet:
+		pushl %ecx
+
+		pushl $slet
+		pushl $formatprintfsir
+		call printf
+		popl %ebx
+		popl %ebx
+
+		pushl $spatiu
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+		popl %ecx
+
+		incl %ecx
+
+		jmp et_for
+
+	et_afisareadd:
+		pushl %ecx
+
+                pushl $sadd
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+                pushl $spatiu
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+		popl %ecx
+
+		incl %ecx
+
+                jmp et_for
+
+	et_afisaresub:
+		pushl %ecx
+
+                pushl $ssub
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+                pushl $spatiu
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+		popl %ecx
+
+		incl %ecx
+
+                jmp et_for
+
+	et_afisaremul:
+		pushl %ecx
+
+                pushl $smul
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+                pushl $spatiu
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+		popl %ecx
+
+		incl %ecx
+
+                jmp et_for
+
+	et_afisarediv:
+		pushl %ecx
+
+                pushl $sdiv
+                pushl $formatprintfsir
+                call printf
+                popl %ebx
+                popl %ebx
+
+		pushl $spatiu
+		pushl $formatprintfsir
+		call printf
+		popl %ebx
+		popl %ebx
+
+		popl %ecx
+
+		incl %ecx
+
+                jmp et_for
+
+
+
+
+et_exit:
+	pushl $endline
+	pushl $formatprintfsir
+	call printf
+	popl %ebx
+	popl %ebx
+
+	pushl $0
+	call fflush
+	popl %ebx
+
+	mov $1, %eax
+	mov $0, %ebx
+	int $0x80

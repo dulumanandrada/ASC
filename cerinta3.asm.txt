@@ -1,0 +1,298 @@
+.data
+	v: .space 300
+	sir: .space 101
+	res: .space 4
+	nr: .space 4
+	chdelim: .asciz " "
+	formatscanf: .asciz "%300[^\n]"
+	formatprintfnr: .asciz "%d\n"
+
+.text
+
+.global main
+
+main:
+	#citirea sirului de la tastatura
+	pushl $sir
+	pushl $formatscanf
+	call scanf
+	popl %ebx
+	popl %ebx
+
+	#preluarea primului cuvant din sir -> %eax
+	pushl $chdelim
+	pushl $sir
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	#mutarea continutului %eax intr-o variabila res
+	movl %eax, res
+
+	#verificam natura cuvantului: numar, variabila, operatie
+	movl res, %esi
+	xorl %ecx, %ecx
+	movb (%esi, %ecx, 1), %al
+
+	cmp $57, %al
+	jbe et_numar
+
+	incl %ecx
+	movb (%esi, %ecx, 1), %al
+
+	cmp $100, %al
+	je et_add
+
+	cmp $105, %al
+	je et_div
+
+	cmp $101, %al
+	je et_let
+
+	incl %ecx
+	movb (%esi, %ecx, 1), %al
+
+	cmp $108, %al
+	je et_mul
+
+	cmp $98, %al
+	je et_sub
+
+	jmp et_variabila
+
+et_for:
+	#trecerea la urmatorul cuvant
+	pushl $chdelim
+	pushl $0
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	#daca nu mai sunt cuvinte iesim
+	cmp $0, %eax
+	je et_exit
+
+	movl %eax, res
+
+	#verificam natura cuvantului: numar, variabila, operatie
+	movl res, %esi
+	xorl %ecx, %ecx
+	movb (%esi, %ecx, 1), %al
+
+	cmp $57, %al
+	jbe et_numar
+
+        incl %ecx
+        movb (%esi, %ecx, 1), %al
+
+        cmp $100, %al
+        je et_add
+
+        cmp $105, %al
+        je et_div
+
+        cmp $101, %al
+        je et_let
+
+        incl %ecx
+        movb (%esi, %ecx, 1), %al
+
+        cmp $108, %al
+        je et_mul
+
+        cmp $98, %al
+        je et_sub
+
+	jmp et_variabila
+
+et_numar:
+	pushl res
+	call atoi
+	popl %ebx
+
+	movl %eax, nr
+
+	#adaugam nr pe stiva
+	pushl nr
+
+	jmp et_for
+
+et_add:
+	popl %ebx
+	popl %eax
+
+        cmp $-1, %eax
+        jg et_madd
+
+        movl $-1, %edx
+        imul %edx
+        movl %eax, %ecx
+        movl (%edi, %ecx, 1), %eax
+
+	et_madd:
+	        cmp $-1, %ebx
+        	jg et_mmadd
+
+		movl %eax, %edx
+		movl %ebx, %eax
+		movl %edx, %ebx
+
+	        movl $-1, %edx
+	        imul %edx
+	        movl %eax, %ecx
+	        movl (%edi, %ecx, 1), %eax
+
+		et_mmadd:
+			addl %ebx, %eax
+
+	pushl %eax
+
+	jmp et_for
+
+et_div:
+        popl %ebx
+        popl %eax
+
+        cmp $-1, %eax
+        jg et_mdiv
+
+        movl $-1, %edx
+        imul %edx
+	movl %eax, %ecx
+	movl (%edi, %ecx, 1), %eax
+
+	et_mdiv:
+
+                cmp $-1, %ebx
+                jg et_mmdiv
+
+                movl %eax, %edx
+                movl %ebx, %eax
+                movl %edx, %ebx
+
+                movl $-1, %edx
+                imul %edx
+                movl %eax, %ecx
+                movl (%edi, %ecx, 1), %eax
+
+        	et_mmdiv:
+                	movl $0, %edx
+                	divl %ebx
+
+        pushl %eax
+
+	jmp et_for
+
+et_let:
+	lea v, %edi
+
+	popl %ebx
+	popl %eax
+
+	movl $-1, %edx
+        imul %edx
+        movl %eax, %ecx
+
+	movl %ebx, (%edi, %ecx, 1)
+
+	jmp et_for
+
+et_mul:
+        popl %ebx
+        popl %eax
+
+        cmp $-1, %eax
+        jg et_mmul
+
+        movl $-1, %edx
+        imul %edx
+        movl %eax, %ecx
+        movl (%edi, %ecx, 1), %eax
+
+        et_mmul:
+
+                cmp $-1, %ebx
+                jg et_mmmul
+
+                movl %eax, %edx
+                movl %ebx, %eax
+                movl %edx, %ebx
+
+                movl $-1, %edx
+                imul %edx
+                movl %eax, %ecx
+                movl (%edi, %ecx, 1), %eax
+
+        	et_mmmul:
+       			movl $0, %edx
+			mull %ebx
+
+        pushl %eax
+
+	jmp et_for
+
+et_sub:
+        popl %ebx
+        popl %eax
+
+        cmp $-1, %eax
+        jg et_msub
+
+        movl $-1, %edx
+        imul %edx
+        movl %eax, %ecx
+        movl (%edi, %ecx, 1), %eax
+
+        et_msub:
+                cmp $-1, %ebx
+                jg et_mmsub
+
+                movl %eax, %edx
+                movl %ebx, %eax
+                movl %edx, %ebx
+
+                movl $-1, %edx
+                imul %edx
+                movl %eax, %ecx
+                movl (%edi, %ecx, 1), %eax
+
+        	et_mmsub:
+			subl %ebx, %eax
+
+        pushl %eax
+
+	jmp et_for
+
+et_variabila:
+	#transformam variabila in nr
+	pushl res
+	call atoi
+	popl %ebx
+
+	#vom avea nr in %edx
+        movl %edx, %eax
+
+        movl $-1, %edx
+        imul %edx
+
+	pushl %eax
+
+	jmp et_for
+
+et_exit:
+	popl %ebx
+	movl %ebx, %eax
+
+	pushl %eax
+	pushl $formatprintfnr
+	call printf
+	popl %ebx
+	popl %ebx
+
+	pushl $0
+	call fflush
+	popl %ebx
+
+	mov $1, %eax
+	mov $0, %ebx
+	int $0x80

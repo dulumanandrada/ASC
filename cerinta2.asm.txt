@@ -1,0 +1,159 @@
+.data
+	sir: .space 101
+	nr: .space 4
+	res: .space 4
+	chdelim: .asciz " "
+	formatscanf: .asciz "%300[^\n]"
+	formatprintf: .asciz "%s\n"
+	formatprintfnr: .asciz "%d\n"
+
+.text
+
+.global main
+
+main:
+	#citirea sirului de la tastatura
+	pushl $sir
+	pushl $formatscanf
+	call scanf
+	popl %ebx
+	popl %ebx
+
+	#preluarea primului cuvant din sir -> %eax
+	pushl $chdelim
+	pushl $sir
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	#mutarea continutului %eax intr-o variabila res
+	movl %eax, res
+
+	#luam primul caracter din cuvant
+	movl res, %edi
+	xorl %ecx, %ecx
+	movb (%edi, %ecx, 1), %al
+
+	cmp $57, %al
+	jbe et_numar
+
+	cmp $97, %al
+	je et_add
+
+	cmp $100, %al
+	je et_div
+
+	cmp $109, %al
+	je et_mul
+
+	cmp $115, %al
+	je et_sub
+
+et_for:
+	#trecerea la urmatorul cuvant
+	pushl $chdelim
+	pushl $0
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	#daca nu mai sunt cuvinte iesim
+	cmp $0, %eax
+	je et_exit
+
+	movl %eax, res
+
+        #luam primul caracter din cuvant
+        movl res, %edi
+        xorl %ecx, %ecx
+        movb (%edi, %ecx, 1), %al
+
+        cmp $57, %al
+        jbe et_numar
+
+        cmp $97, %al
+        je et_add
+
+        cmp $100, %al
+        je et_div
+
+        cmp $109, %al
+        je et_mul
+
+        cmp $115, %al
+        je et_sub
+
+	jmp et_for
+
+et_numar:
+	pushl res
+	call atoi
+	popl %ebx
+
+	movl %eax, nr
+
+	#adaugam numarul pe stiva
+	pushl nr
+
+	jmp et_for
+
+et_add:
+	popl %ebx
+	popl %eax
+
+	addl %ebx, %eax
+
+	pushl %eax
+
+	jmp et_for
+
+et_div:
+	movl $0,  %edx
+        popl %ebx
+        popl %eax
+
+        divl %ebx
+
+        pushl %eax
+
+	jmp et_for
+
+et_mul:
+	movl $0, %edx
+        popl %ebx
+        popl %eax
+
+        mull %ebx
+
+        pushl %eax
+
+	jmp et_for
+
+et_sub:
+        popl %ebx
+        popl %eax
+
+        subl %ebx, %eax
+
+        pushl %eax
+
+	jmp et_for
+
+et_exit:
+	popl %ebx
+
+	movl %ebx, %eax
+
+	pushl %eax
+	pushl $formatprintfnr
+	call printf
+	popl %ebx
+	popl %ebx
+
+	pushl $0
+	call fflush
+	popl %ebx
+
+	mov $1, %eax
+	mov $0, %ebx
+	int $0x80
