@@ -2,11 +2,14 @@
 Assembly operations
 
 ## Cerinta 1
+```
 Fie dat ca input un sir hexa, se cere sa se afiseze la standard output instructiunea assembly de
 executat.
 De exemplu, pentru inputul A78801C00A7890EC04, se va afisa la standard output x 1 let x -14 div.
+```
 
 ## Cerinta 2
+```
 Fie dat ca input o instructiune in limbajul de asamblare al procesorului aritmetic considerat, se
 cere sa se afiseze la standard output evaluarea instructiunii. Pentru aceasta cerinta, in instructiune
 nu exista variabile, ea fiind formata doar din numere intregi si operatii.
@@ -28,8 +31,10 @@ care era deja la baza stivei.
 • se identifica add - se calculeaza suma dintre 1 si 4, se obtine 5, se elimina 1 si 4 de pe stiva, se
 adauga 5;
 • am terminat de parcurs sirul, iar rezultatul obtinut este, acum, situat in varful stivei. Rezultatul acestui calcul este 5.
+```
 
 ## Cerinta 3
+```
 Fie dat ca input o instructiune in limbajul de asamblare al procesorului aritmetic considerat. Se
 cere sa se afiseze la standard output evaluarea instructiunii. Pentru aceasta cerinta, spre deosebire
 de cerinta 2, se folosesc variabile introduse prin let.
@@ -47,3 +52,4 @@ aritmetica; sunt eliminati y si 3 de pe stiva;
 4, de la bulinuta anterioara, si se calculeaza rezultatul, 12, se elimina apoi 3 si 4 de pe stiva si
 se adauga 12;
 • nu mai sunt elemente in sir, deci rezultatul final este 12.
+```
